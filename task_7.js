@@ -89,4 +89,7 @@ let pat2 = mod.find_Patient("О. Біда", 32, hosp1);
 console.log(`Пошук пацієнта - О. Біда: ${hosp2 !== -1 ? "знайдено" : "не знайдено"}`);
 
 // Інструкція написання власних модулів для node.js
-// https://www.digitalocean.com/community/tutorials/how-to-create-a-node-js-mod-ru
+// https://www.digitalocean.com/community/tutorials/how-to-create-a-node-js-module-ru
+
+// Використвуємо Node.js, Require та Exports
+// https://habr.com/ru/post/217901/
