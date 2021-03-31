@@ -6,15 +6,20 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Dniprovets",
   "license": "ISC",
-  "dependencies": {
-    "custom_module": "file:custom_module"
+  "dependencies": {},
+  "devDependencies": {
+	"bootstrap": "^5.0.0-beta3",
+    "custom_module": "file:custom_module",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "nodemon": "^2.0.7"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "clear"
   },
   "description": ""
+  
 }
