@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "frontend": "nodemon web_application/frontend/main.js -e js,ejs",
+    "backend": "nodemon web_application/backend/main.js  -e js,ejs"
   },
   "keywords": [],
   "author": "Dniprovets",
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
-	"bootstrap": "^5.0.0-beta3",
+    "bootstrap": "^5.0.0-beta3",
     "custom_module": "file:custom_module",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
@@ -21,5 +22,4 @@
     "url": "clear"
   },
   "description": ""
-  
 }
