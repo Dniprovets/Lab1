@@ -2,9 +2,14 @@
   "name": "lab_1",
   "version": "1.0.0",
   "main": "index.js",
+  "config": {
+    "port_frontend": "8080",
+    "port_backend": "3000"
+  },
   "scripts": {
-    "frontend": "nodemon web_application/frontend/main.js -e js,ejs",
-    "backend": "nodemon web_application/backend/main.js  -e js,ejs"
+    "frontend": "nodemon web_application/frontend/main.js use_db=false -e js,ejs",
+    "frontend_db": "nodemon web_application/frontend/main.js use_db=true -e js,ejs",
+    "backend": "nodemon web_application/backend/main.js -e js"
   },
   "keywords": [],
   "author": "Dniprovets",
@@ -12,10 +17,12 @@
   "dependencies": {},
   "devDependencies": {
     "bootstrap": "^5.0.0-beta3",
+    "cors": "^2.8.5",
     "custom_module": "file:custom_module",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
     "jquery": "^3.6.0",
+    "mongodb": "^3.6.6",
     "nodemon": "^2.0.7"
   },
   "repository": {

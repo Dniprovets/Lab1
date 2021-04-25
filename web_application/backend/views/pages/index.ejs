@@ -1,4 +1,7 @@
-<head use_db="<%- use_db %>" server_port="<%- server_port %>">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
 
    <!-- Задаємо кодування сторінки -->
    <meta charset="UTF-8">
@@ -20,3 +23,15 @@
    <link rel="stylesheet" href="/web_application/frontend/css/scrollbar.css">
 
 </head>
+
+<body class="bg-dark text-light mx-3 my-2">
+
+   <div class="fs-3 text-primary">Ви підключилися до локального сервера</div>
+   <div class="fs-5">http://localhost:<%- port %></div>
+   <hr>
+   <div class="fs-3 text-primary mb-2">Список доступниї запитів</div>
+
+   <%- include('../blocks/table.ejs'); %>
+
+</body>
+</html>
