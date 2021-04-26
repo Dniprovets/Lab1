@@ -1,47 +1,103 @@
+// Необхідні змінні
+let search = "";
+let divider = `<li><hr class="dropdown-divider"></li>`;
+
 // Створення нового елемента
-function create_element() {
+async function create_element() {
 
    let target = location.pathname.substring(1);
+   target = target.substring(0, target.length - 1);
 
-   if (target === "cured_patients") {
+   if (target === "cured_patient") {
       modal_delete_cured_patients();
       return;
    }
 
    switch (target) {
-      case "hospitals": $("#hospital_title").text("Додавання нової лікарні");
-                        $("#hospital_yes").text("Додати");
-                        break;
-      case "doctors":   $("#doctor_title").text("Додавання нового лікаря");
-                        $("#doctor_yes").text("Додати");
-                        break;
-      case "patients":  $("#patient_title").text("Додавання нового пацієнта");
-                        $("#patient_yes").text("Додати");
-                        break;
+
+      case "hospital": $("#hospital_title").text("Додавання нової лікарні");
+                       $("#hospital_yes").text("Додати");
+                       break;
+      case "doctor":   $("#doctor_title").text("Додавання нового лікаря");
+                       $("#doctor_yes").text("Додати");
+                       prepare_hospitals_for_dropdown(target);
+                       break;
+      case "patient":  $("#patient_title").text("Додавання нового пацієнта");
+                       $("#patient_yes").text("Додати");
+                       prepare_hospitals_for_dropdown(target);
+                       break;
+
    }
 
-   $(`#modal_${target}`).modal('show');
-
-}
-
-// Редагування існуючого елемента
-function edit_element() {
-
-   let target = location.pathname.substring(1);
-   target = target.substring(0, target.length - 1);
-
-   $(`#${target}_title`).text("Редагування даних");
-   $(`#${target}_yes`).text("Оновити дані");
+   $(`#${target}_yes`).attr("onclick", `modal_update_${target}s(true)`);
    $(`#modal_${target}s`).modal('show');
 
 }
 
-// Пошук існуючого елемента
-function find_element() {
+// ...............................................................................................
 
-   console.log(`Find: ${location.pathname}`);
+// Редагування існуючого елемента
+async function edit_element (element) {
+
+   let item;
+   let target = location.pathname.substring(1);
+   target = target.substring(0, target.length - 1);
+
+   let id = parseInt($(element).closest("tr").children().first().text());
+
+   $(`#${target}_title`).text("Редагування даних");
+   $(`#${target}_yes`).text("Оновити дані");
+
+   switch (target) {
+
+      case "hospital": item = get_hospital_by_id(id);
+                       $("#hospital_name").val(item.name);
+                       $("#hospital_address").val(item.address);
+                       break;
+      case "doctor":   item = get_doctor_by_id(id);
+                       $("#doctor_age").val(item.age);
+                       $("#doctor_name").val(item.name);
+                       $("#doctor_hospital").text(item.hospital);
+                       prepare_hospitals_for_dropdown(target);
+                       break;
+      case "patient":  item = get_patient_by_id(id);
+                       $("#patient_age").val(item.age);
+                       $("#patient_name").val(item.name);
+                       $("#patient_doctor").text(item.doctor);
+                       $("#patient_hospital").text(item.hospital);
+                       prepare_hospitals_for_dropdown(target);
+                       break;
+
+   }
+
+   $(`#${target}_yes`).attr("onclick", `modal_update_${target}s(false, ${id})`);
+   $(`#modal_${target}s`).modal('show');
 
 }
+
+// ...............................................................................................
+
+// Пошук існуючого елемента
+function find_element (element) {
+
+   let search = $(element).val();
+   let target = location.pathname.substring(1);
+   let search_list = [];
+
+   switch (target) {
+
+      case "hospitals":      search_list = find_hospitals(search);      break;
+      case "doctors":        search_list = find_doctors(search);        break;
+      case "patients":       search_list = find_patients(search);       break;
+      case "cured_patients": search_list = find_patients(search, true); break;
+
+   }
+
+   display_data(search_list);
+
+}
+
+// ...............................................................................................
 
 // Видалення існуючого елемента
 function delete_element (item) {
@@ -80,121 +136,31 @@ function delete_element (item) {
 
 }
 
-// Вибрана позитивна відповідь у модальному вікні
-function modal_confirm() {
-
-   let page = location.pathname.substring(1);
-
-   let target = $("#modal_confirm").attr("target");
-   let src = $("#modal_confirm").attr("src");
-
-   switch (target) {
-
-      // Видалення даних
-      case "delete": let id = parseInt(src);
-                     page = page.substr(0, page.length - 1);
-                     eval(`remove_${page}(${id})`);
-                     display_data();
-                     save_data();
-                     break;
-
-   }
-}
-
-// Задання елементів модального вікна підтвердження
-function modal_confirm_create (title, message, yes, no, target, src) {
-
-   $(`#modal_confirm_title`).text(title);
-   $(`#modal_confirm_message`).text(message);
-   $(`#modal_confirm_yes`).text(yes);
-   $(`#modal_confirm_no`).text(no);
-   $("#modal_confirm").attr("target", target);
-   $("#modal_confirm").attr("src", src);
-
-}
-
-// Додавання нової лікарні
-function modal_add_hospitals() {
-
-   let name    = $("#hospital_name").val();
-   let address = $("#hospital_address").val();
-
-   add_hospital(name, address);
-   display_data();
-   clear_input();
-   save_data();
-
-}
-
-// Додавання нового лікаря
-function modal_add_doctors() {
-
-   let name     = $("#doctor_name").val();
-   let age      = $("#doctor_age").val();
-   let hospital = $("#doctor_hospital").text();
-
-   add_doctor(name, age, hospital);
-   display_data();
-   clear_input();
-   save_data();
-
-}
-
-// Додавання нового пацієнта
-function modal_add_patients() {
-
-   let name     = $("#patient_name").val();
-   let age      = $("#patient_age").val();
-   let doctor   = $("#patient_doctor").text();
-   let hospital = $("#patient_hospital").text();
-
-   add_patient(name, age, doctor, hospital);
-   display_data();
-   clear_input();
-   save_data();
-
-}
-
-// Підтвердження видалення виписаних пацієнтів
-function modal_delete_cured_patients() {
-
-   modal_confirm_create("Видалення даних",
-                        "Ви дійсно хочете видалити усі наявні дані про виписаних пацієнтів?",
-                        "Очистити",
-                        "Відміна");
-
-   $(`#modal_confirm`).modal('show');
-
-}
-
-// Вибір лікарні у випадаючому списку
-function set_hospital() {
-
-   console.log("set_hospital");
-
-}
-
-// Вибір лікаря у випадаючому списку
-function set_doctor() {
-
-   console.log("set_doctor");
-
-}
+// ...............................................................................................
 
 // Відобразити дані у таблиці
-function display_data() {
+function display_data (search_list) {
 
    let data;
+   let additional_attr = "";
    let target = location.pathname.substring(1);
 
    switch (target) {
 
-      case "hospitals":      data = get_hospitals_list();    break;
-      case "doctors":        data = get_doctors_list();      break;
-      case "patients":       data = get_patients_list();     break;
-      case "cured_patients": data = get_patients_list(true); break;
-
+      case "hospitals":      data = get_hospitals_list();
+                             break;
+      case "doctors":        data = get_doctors_list();
+                             break;
+      case "patients":       data = get_patients_list();
+                             additional_attr = "false, ";
+                             break;
+      case "cured_patients": data = get_patients_list(true);
+                             additional_attr = "true, ";
+                             break;
    }
+
+   // Якщо поле пошуку не порожнє - відображаємо результат
+   if (search_list) { data = search_list; }
 
    // Очищення таблиць
    clear_table(data.length === 0);
@@ -206,9 +172,11 @@ function display_data() {
    if (target === "cured_patients") { target = "patients"; }
 
    // Відобразити дані конкретної таблиці
-   eval(`display_${target}_data(data)`);
+   eval(`display_${target}_data(${additional_attr}data)`);
 
 }
+
+// ...............................................................................................
 
 // Відобразити дані про усі лікарні
 function display_hospitals_data (data) {
@@ -231,8 +199,6 @@ function display_hospitals_data (data) {
 // Відобразити дані про усіх лікарів
 function display_doctors_data (data) {
 
-// <li><hr class="dropdown-divider"></li>
-
    for (let element of data) {
       
       let block =
@@ -250,7 +216,7 @@ function display_doctors_data (data) {
 }
 
 // Відобразити дані про усіх пацієнтів
-function display_patients_data (data) {
+function display_patients_data (is_cured, data) {
 
    for (let element of data) {
       
@@ -261,13 +227,212 @@ function display_patients_data (data) {
          <td class="fit"> <span class="m-2">${element.age}</span> </td>
          <td>${element.doctor}</td>
          <td>${element.hospital}</td>
-         <td>${get_icon_code()}</td>
+         <td>${get_icon_code(is_cured)}</td>
       </tr>`;
 
       $("#table").append(block);
 
    }
 }
+
+// ...............................................................................................
+
+// Вибрана позитивна відповідь у модальному вікні
+function modal_confirm() {
+
+   let page = location.pathname.substring(1);
+
+   let target = $("#modal_confirm").attr("target");
+   let src = $("#modal_confirm").attr("src");
+
+   switch (target) {
+
+      // Видалення даних
+      case "delete":
+         let id = parseInt(src);
+         page = page.substr(0, page.length - 1);
+         eval(`remove_${page}(${id})`);
+         display_data();
+         save_data();
+         break;
+
+
+      // Видалення усіх даних про виписаних пацієнтів
+      case "delete_cured_patients":
+         cured_patients_list = [];
+         display_data();
+         save_data();
+         break;
+
+   }
+}
+
+// Задання елементів модального вікна підтвердження
+function modal_confirm_create (title, message, yes, no, target, src) {
+
+   $(`#modal_confirm_title`).text(title);
+   $(`#modal_confirm_message`).text(message);
+   $(`#modal_confirm_yes`).text(yes);
+   $(`#modal_confirm_no`).text(no);
+   $("#modal_confirm").attr("target", target);
+   $("#modal_confirm").attr("src", src);
+
+}
+
+// ...............................................................................................
+
+// Додавання нової лікарні або редагування існуючої
+function modal_update_hospitals (added_new, id) {
+
+   let name    = $("#hospital_name").val();
+   let address = $("#hospital_address").val();
+
+   if (added_new) { add_hospital(name, address);      }
+   else           { edit_hospital(id, name, address); }
+
+   display_data();
+   clear_input();
+   save_data();
+
+}
+
+// Додавання нового лікаря або редагування існуючого
+function modal_update_doctors (added_new, id) {
+
+   let name     = $("#doctor_name").val();
+   let age      = $("#doctor_age").val();
+   let hospital = $("#doctor_hospital").text();
+
+   hospital = hospital === "Виберіть лікарню" ? "Не встановлено" : hospital;
+
+   if (added_new) { add_doctor(name, age, hospital);      }
+   else           { edit_doctor(id, name, age, hospital); }
+
+   display_data();
+   clear_input();
+   save_data();
+
+}
+
+// Додавання нового пацієнта або редагування існуючого
+function modal_update_patients (added_new, id) {
+
+   let name     = $("#patient_name").val();
+   let age      = $("#patient_age").val();
+   let doctor   = $("#patient_doctor").text();
+   let hospital = $("#patient_hospital").text();
+
+   doctor   = doctor   === "Виберіть лікаря"  ? "Не призначено"  : doctor;
+   hospital = hospital === "Виберіть лікарню" ? "Не встановлено" : hospital;
+
+   if (added_new) { add_patient(name, age, doctor, hospital);      }
+   else           { edit_patient(id, name, age, doctor, hospital); }
+
+   display_data();
+   clear_input();
+   save_data();
+
+}
+
+// ...............................................................................................
+
+// Підтвердження видалення виписаних пацієнтів
+function modal_delete_cured_patients() {
+
+   modal_confirm_create("Видалення даних",
+                        "Ви дійсно хочете видалити усі наявні дані про виписаних пацієнтів?",
+                        "Очистити",
+                        "Відміна",
+                        "delete_cured_patients");
+
+   $(`#modal_confirm`).modal('show');
+
+}
+
+// ...............................................................................................
+
+// Вибір лікарні у випадаючому списку
+function set_hospital (element) {
+
+   let hospital = $(element).text();
+   let target = location.pathname.substring(1);
+
+   hospital = hospital === ". . ." ? "Виберіть лікарню" : hospital;
+
+   if (target === "doctors") { $("#doctor_hospital").text(hospital);  }
+   else                      { $("#patient_hospital").text(hospital);
+                               prepare_doctors_for_dropdown();        }
+
+}
+
+// Вибір лікаря у випадаючому списку
+function set_doctor (element) {
+
+   let doctor = $(element).text();
+
+   doctor = doctor === ". . ." ? "Виберіть лікаря" : doctor;
+
+   $("#patient_doctor").text(doctor);
+
+}
+
+// ...............................................................................................
+
+// Підготовуємо список доступних лікарень у випадаючому меню
+function prepare_hospitals_for_dropdown (target) {
+
+   let list = $(`#${target}_hospitals_list`);
+
+   // Отримуємо інформацію про усі лікарні
+   get_data("hospitals").then((result) => {
+
+      if (result.length != 0) {
+         
+         list.find("li:not(:first)").remove();
+         list.append(divider);
+
+         for (let item of result) {
+            list.append(`<li><span class="dropdown-item" ` +
+                        `onclick="set_hospital(this)">${item.name}</span></li>`);
+         }
+      }
+
+   });
+}
+
+// Підготовуємо список доступних лікарів у випадаючому меню
+function prepare_doctors_for_dropdown() {
+
+   $("#patient_doctor").text("Виберіть лікаря");
+
+   let list = $(`#patient_doctors_list`);
+   let hospital = $("#patient_hospital").text();
+   let divider_is_added = false;
+
+   // Отримуємо інформацію про усіх лікарів
+   get_data("doctors").then((result) => {
+
+      if (result.length != 0) {
+         
+         list.find("li:not(:first)").remove();
+
+         for (let item of result) {
+
+            if (item.hospital === hospital) {
+
+               if (!divider_is_added) { list.append(divider);
+                                        divider_is_added = true; }
+
+               list.append(`<li><span class="dropdown-item" ` +
+                           `onclick="set_doctor(this)">${item.name}</span></li>`);
+            }
+         }
+      }
+
+   });
+}
+
+// ...............................................................................................
 
 // Видалення усіх даних з таблиці 
 // Додавання інформаційного повідомлення, якщо таблиця пуста
@@ -311,6 +476,8 @@ function clear_input() {
    }
 }
 
+// ...............................................................................................
+
 // Метод повертає html код елементів керування таблицею
 function get_icon_code (only_delete) {
 
@@ -338,6 +505,8 @@ function get_icon_code (only_delete) {
 
 }
 
+// ...............................................................................................
+
 // Обмеження вводу для поля "вік"
 function set_age (element) {
 
@@ -347,6 +516,17 @@ function set_age (element) {
    $(element).val(value);
 
 }
+
+// Метод дозволяє реалізувати затримку
+function delay (time) {
+   return new Promise((resolve, reject) => {
+      setTimeout(() => {
+         resolve();
+      }, time);
+   });
+}
+
+// ...............................................................................................
 
 // Очищення даних після закриття модальних вікон
 $(document).on("hidden.bs.modal", () => { clear_input(); });
