@@ -102,6 +102,7 @@ function find_element (element) {
 // Видалення існуючого елемента
 function delete_element (item) {
 
+   let button;
    let message;
    let target = location.pathname.substring(1);
    let id = parseInt($(item).closest("tr").children().first().text());
@@ -109,26 +110,30 @@ function delete_element (item) {
    switch (target) {
 
       case "hospitals":
-         message = "Ви дійсно хочете видалити цю лікарню";
+         message = "Ви дійсно хочете видалити інформацію про цю лікарню";
+         button = "Видалити";
          break;
 
       case "doctors":
          message = "Ви дійсно хочете звільнити цього лікаря";
+         button = "Звільнити";
          break;
 
       case "patients":
          message = "Ви дійсно хочете виписати цього пацієнта";
+         button = "Виписати";
          break;
 
       case "cured_patients":
-         message = "Ви дійсно хочете видалити цього виписаного пацієнта";
+         message = "Ви дійсно хочете видалити інформацію про цього виписаного пацієнта";
+         button = "Видалити";
          break;
 
    }
    
    modal_confirm_create("Повідомлення",
                         `${message}?`,
-                        "Видалити",
+                        `${button}`,
                         "Відміна",
                         "delete", id);
 
@@ -405,7 +410,7 @@ function prepare_doctors_for_dropdown() {
 
    $("#patient_doctor").text("Виберіть лікаря");
 
-   let list = $(`#patient_doctors_list`);
+   let list = $("#patient_doctors_list");
    let hospital = $("#patient_hospital").text();
    let divider_is_added = false;
 
@@ -467,11 +472,14 @@ function clear_input() {
       case "doctors":   $("#doctor_name").val("");
                         $("#doctor_age").val("");
                         $("#doctor_hospital").text("Виберіть лікарню");
+                        $("#doctor_hospitals_list").find("li:not(:first)").remove();
                         break;
       case "patients":  $("#patient_name").val("");
                         $("#patient_age").val("");
                         $("#patient_doctor").text("Виберіть лікаря");
                         $("#patient_hospital").text("Виберіть лікарню");
+                        $(`#patient_doctors_list`).find("li:not(:first)").remove();
+                        $(`#patient_hospitals_list`).find("li:not(:first)").remove();
                         break;
    }
 }
